@@ -58,7 +58,56 @@ public class MainActivity extends Activity {
 		            	
 		            }
 		            
-		            ExifInterface exif = ExtIf(newfile);
+		            
+		            try {
+			            ExifInterface exif = new ExifInterface(newfile.getCanonicalPath());
+						//String latitudeStr = "90/1,12/1,30/1";
+						double lat = 43.2154;
+						double alat = Math.abs(lat);
+						String dms = Location.convert(alat, Location.FORMAT_SECONDS);
+						String[] splits = dms.split(":");
+						String[] secnds = (splits[2]).split("\\.");
+						String seconds;
+						if(secnds.length==0)
+						{
+						    seconds = splits[2];
+						}
+						else
+						{
+						    seconds = secnds[0];
+						}
+	
+						String latitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
+						exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, latitudeStr);
+	
+						exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, lat>0?"N":"S");
+	
+						double lon = 21.125;
+						double alon = Math.abs(lon);
+	
+	
+						dms = Location.convert(alon, Location.FORMAT_SECONDS);
+						splits = dms.split(":");
+						secnds = (splits[2]).split("\\.");
+	
+						if(secnds.length==0)
+						{
+						    seconds = splits[2];
+						}
+						else
+						{
+						    seconds = secnds[0];
+						}
+						String longitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
+	
+	
+						exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, longitudeStr);
+						exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, lon>0?"E":"W");
+						exif.saveAttributes();
+					} catch (IOException e) {
+						Toast.makeText(getApplicationContext(), "Ala je puklo, svaka mu cast!", Toast.LENGTH_SHORT).show();
+					}
+		            
 		
 		            Uri outputFileUri = Uri.fromFile(newfile);
 		
