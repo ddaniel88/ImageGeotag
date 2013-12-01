@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import android.location.Location;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -54,7 +56,9 @@ public class MainActivity extends Activity {
 		                newfile.createNewFile();
 		            } catch (IOException e) {
 		            	
-		            }       
+		            }
+		            
+		            ExifInterface exif = ExtIf(newfile);
 		
 		            Uri outputFileUri = Uri.fromFile(newfile);
 		
@@ -83,6 +87,61 @@ public class MainActivity extends Activity {
 	        Log.d("CameraDemo", "Pic saved");
 	
 	    }
+	}
+	
+	public ExifInterface ExtIf(File imgFile) {
+		try {
+			ExifInterface exif = new ExifInterface(imgFile.getCanonicalPath());
+			//String latitudeStr = "90/1,12/1,30/1";
+			double lat = 43.2154;
+			double alat = Math.abs(lat);
+			String dms = Location.convert(alat, Location.FORMAT_SECONDS);
+			String[] splits = dms.split(":");
+			String[] secnds = (splits[2]).split("\\.");
+			String seconds;
+			if(secnds.length==0)
+			{
+			    seconds = splits[2];
+			}
+			else
+			{
+			    seconds = secnds[0];
+			}
+
+			String latitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
+			exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, latitudeStr);
+
+			exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, lat>0?"N":"S");
+
+			double lon = 21.125;
+			double alon = Math.abs(lon);
+
+
+			dms = Location.convert(alon, Location.FORMAT_SECONDS);
+			splits = dms.split(":");
+			secnds = (splits[2]).split("\\.");
+
+			if(secnds.length==0)
+			{
+			    seconds = splits[2];
+			}
+			else
+			{
+			    seconds = secnds[0];
+			}
+			String longitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
+
+
+			exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, longitudeStr);
+			exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, lon>0?"E":"W");
+
+			exif.saveAttributes();
+			return exif;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+
 	}
 
 }
