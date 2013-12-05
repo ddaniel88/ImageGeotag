@@ -31,8 +31,12 @@ public class MainActivity extends Activity {
 	{
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.activity_main);
-	    
-	    try {
+		final File phoneDir = new File(Environment.getExternalStorageDirectory(), "/" + exportFileLocation);
+		String file = 1+".jpg";
+        File newfile = new File(phoneDir, file);
+        
+	    int i = 10;
+	  /*  try {
 			File exportDir = new File(Environment.getExternalStorageDirectory(), "/" + exportFileLocation);
 			final File phoneDir = new File(Environment.getExternalStorageDirectory(), "/" + exportFileLocation + "/" + android.os.Build.MODEL);
 			if (!exportDir.exists()) {
@@ -58,56 +62,7 @@ public class MainActivity extends Activity {
 		            	
 		            }
 		            
-		            
-		            try {
-			            ExifInterface exif = new ExifInterface(newfile.getCanonicalPath());
-						//String latitudeStr = "90/1,12/1,30/1";
-						double lat = 43.2154;
-						double alat = Math.abs(lat);
-						String dms = Location.convert(alat, Location.FORMAT_SECONDS);
-						String[] splits = dms.split(":");
-						String[] secnds = (splits[2]).split("\\.");
-						String seconds;
-						if(secnds.length==0)
-						{
-						    seconds = splits[2];
-						}
-						else
-						{
-						    seconds = secnds[0];
-						}
-	
-						String latitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
-						exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, latitudeStr);
-	
-						exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, lat>0?"N":"S");
-	
-						double lon = 21.125;
-						double alon = Math.abs(lon);
-	
-	
-						dms = Location.convert(alon, Location.FORMAT_SECONDS);
-						splits = dms.split(":");
-						secnds = (splits[2]).split("\\.");
-	
-						if(secnds.length==0)
-						{
-						    seconds = splits[2];
-						}
-						else
-						{
-						    seconds = secnds[0];
-						}
-						String longitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
-	
-	
-						exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, longitudeStr);
-						exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, lon>0?"E":"W");
-						exif.saveAttributes();
-					} catch (IOException e) {
-						Toast.makeText(getApplicationContext(), "Ala je puklo, svaka mu cast!", Toast.LENGTH_SHORT).show();
-					}
-		            
+		         
 		
 		            Uri outputFileUri = Uri.fromFile(newfile);
 		
@@ -115,16 +70,24 @@ public class MainActivity extends Activity {
 		            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
 		
 		            startActivityForResult(cameraIntent, TAKE_PHOTO_CODE);
-
-		        }
-		    });
-		        
-		} catch (NullPointerException ex) {
-			Toast.makeText(getApplicationContext(), "Name cannot be empty.", Toast.LENGTH_SHORT).show();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	
+		            
+		       */     
+			   
+					geoTag(newfile.getAbsolutePath(), 44, 22);
+				
+						//String latitudeStr = "90/1,12/1,30/1";
+						
+		            
+//
+//		        }
+//		    });
+//		        
+//		} catch (NullPointerException ex) {
+//			Toast.makeText(getApplicationContext(), "Name cannot be empty.", Toast.LENGTH_SHORT).show();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	
 	      
 	}
 	
@@ -138,59 +101,40 @@ public class MainActivity extends Activity {
 	    }
 	}
 	
-	public ExifInterface ExtIf(File imgFile) {
-		try {
-			ExifInterface exif = new ExifInterface(imgFile.getCanonicalPath());
-			//String latitudeStr = "90/1,12/1,30/1";
-			double lat = 43.2154;
-			double alat = Math.abs(lat);
-			String dms = Location.convert(alat, Location.FORMAT_SECONDS);
-			String[] splits = dms.split(":");
-			String[] secnds = (splits[2]).split("\\.");
-			String seconds;
-			if(secnds.length==0)
-			{
-			    seconds = splits[2];
-			}
-			else
-			{
-			    seconds = secnds[0];
-			}
+	public void geoTag(String filename, double latitude, double longitude){
+	    ExifInterface exif;
 
-			String latitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
-			exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, latitudeStr);
+	    try {
+	        exif = new ExifInterface(filename);
+	        int num1Lat = (int)Math.floor(latitude);
+	        int num2Lat = (int)Math.floor((latitude - num1Lat) * 60);
+	        double num3Lat = (latitude - ((double)num1Lat+((double)num2Lat/60))) * 3600000;
 
-			exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, lat>0?"N":"S");
+	        int num1Lon = (int)Math.floor(longitude);
+	        int num2Lon = (int)Math.floor((longitude - num1Lon) * 60);
+	        double num3Lon = (longitude - ((double)num1Lon+((double)num2Lon/60))) * 3600000;
 
-			double lon = 21.125;
-			double alon = Math.abs(lon);
+	        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, num1Lat+"/1,"+num2Lat+"/1,"+num3Lat+"/1000");
+	        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, num1Lon+"/1,"+num2Lon+"/1,"+num3Lon+"/1000");
 
 
-			dms = Location.convert(alon, Location.FORMAT_SECONDS);
-			splits = dms.split(":");
-			secnds = (splits[2]).split("\\.");
+	        if (latitude > 0) {
+	            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "N"); 
+	        } else {
+	            exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "S");
+	        }
 
-			if(secnds.length==0)
-			{
-			    seconds = splits[2];
-			}
-			else
-			{
-			    seconds = secnds[0];
-			}
-			String longitudeStr = splits[0] + "/1," + splits[1] + "/1," + seconds + "/1";
+	        if (longitude > 0) {
+	            exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "E");    
+	        } else {
+	        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "W");
+	        }
 
+	        exif.saveAttributes();
+	    } catch (IOException e) {
+	        Log.e("PictureActivity", e.getLocalizedMessage());
+	    } 
 
-			exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, longitudeStr);
-			exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, lon>0?"E":"W");
-
-			exif.saveAttributes();
-			return exif;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-
-	}
+	    }
 
 }
